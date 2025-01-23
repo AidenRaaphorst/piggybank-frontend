@@ -61,12 +61,8 @@ describe("PiggyBank", () => {
       // Submit the transfer
       cy.get("button[type=submit]").click();
 
-      // Check if the validation message shows up in the input
-      // Bit messy, but it works
-      cy.get("input#amount").should("have.attr", "min", "0.00");
-
-      // Make sure the success screen does not appear
-      cy.get("h1").should("not.contain", "Gelukt");
+      // Confirm the validation failed
+      cy.get("input#amount").invoke("prop", "validationMessage").should("not.be.empty");
     });
 
     it("does not transfer money when amount is higher than balance", () => {
@@ -90,9 +86,13 @@ describe("PiggyBank", () => {
       // Submit the transfer
       cy.get("button[type=submit]").click();
 
-      // Confirm the transfer succeeded
+      // Confirm the transfer succeeded and check if it shows the correct currency
       cy.get("h1").should("contain", "Gelukt");
       cy.get("div.alert").should("contain", "$");
+
+      // Go back to the overview and check if it shows the correct currency
+      cy.visit("http://localhost:3000/");
+      cy.get("span.transaction__amount").first().should("contain", "$");
     });
   });
 
@@ -108,7 +108,8 @@ describe("PiggyBank", () => {
       // Type the new account name
       cy.get("input#accountName").clear().type("Sara’s rekening");
 
-      // TODO: Press the Save button if allowed?
+      // Click the Save button
+      cy.get("button[type=submit]").click();
 
       // Get to the confirmed screen
       cy.get("h1").should("contain", "Hoppa");
@@ -125,8 +126,8 @@ describe("PiggyBank", () => {
       // Click the Save button
       cy.get("button[type=submit]").click();
 
-      // Get to the confirmed screen
-      cy.get("h1").should("not.contain", "Hoppa");
+      // Confirm the validation failed
+      cy.get("input#accountName").invoke("prop", "validationMessage").should("not.be.empty");
     });
   });
 });
